@@ -104,6 +104,13 @@ class AzureSTTClient:
             asyncio.run(self.stop())
 
 # Example usage
+# if __name__ == "__main__":
+#     client = AzureSTTClient()
+#     client.run() 
+    
 if __name__ == "__main__":
-    client = AzureSTTClient()
-    client.run() 
+    try:
+        client = AzureSTTClient()
+        client.run() 
+    except KeyboardInterrupt:
+        print("\nStopped by user")
