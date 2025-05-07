@@ -47,6 +47,7 @@ class AzureSTTClient:
         
         self._running = False
         self._ws = None
+        self._stream = None
 
     async def _audio_sender(self, ws):
         loop = asyncio.get_running_loop()
@@ -54,21 +55,30 @@ class AzureSTTClient:
         def callback(indata, _frames, _time, status):
             if status:
                 print(status, file=sys.stderr)
-            pcm = (indata * 32767).astype(np.int16).tobytes()
-            loop.call_soon_threadsafe(lambda: asyncio.create_task(ws.send(pcm)))
+            if self._running:  # Only send if still running
+                pcm = (indata * 32767).astype(np.int16).tobytes()
+                loop.call_soon_threadsafe(lambda: asyncio.create_task(ws.send(pcm)))
 
-        with sd.InputStream(
+        self._stream = sd.InputStream(
             samplerate=self.sample_rate,
             channels=self.channels,
             dtype="float32",
             blocksize=self.chunk_frames,
             callback=callback
-        ):
+        )
+        
+        with self._stream:
             await asyncio.Future()
 
     async def _text_receiver(self, ws):
-        async for msg in ws:
-            self.on_text_received(msg)
+        try:
+            async for msg in ws:
+                if not self._running:
+                    break
+                self.on_text_received(msg)
+        except websockets.exceptions.ConnectionClosed:
+            if self._running:
+                print("Connection closed unexpectedly")
 
     async def start(self):
         """Start the STT client"""
@@ -91,6 +101,10 @@ class AzureSTTClient:
     async def stop(self):
         """Stop the STT client"""
         self._running = False
+        if self._stream:
+            self._stream.stop()
+            self._stream.close()
+            self._stream = None
         if self._ws:
             await self._ws.close()
             self._ws = None
@@ -100,8 +114,13 @@ class AzureSTTClient:
         try:
             asyncio.run(self.start())
         except KeyboardInterrupt:
-            print("\nStopped by user")
+            print("\nStopping gracefully...")
             asyncio.run(self.stop())
+        except Exception as e:
+            print(f"\nError occurred: {e}")
+            asyncio.run(self.stop())
+        finally:
+            print("Stopped")
 
 # Example usage
 # if __name__ == "__main__":
