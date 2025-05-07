@@ -85,16 +85,20 @@ class AzureSTTClientV2:
                   lang: str = None,
                   username: str = None,
                   hashkey: str = None):
-        if lang is None:
-            lang = self.lang
-        if username is None:
-            username = self.username
-        if hashkey is None:
-            hashkey = self.hashkey
+        """
+        Initialize the STT client with optional parameters.
+        If any parameter is provided, it will override the default values.
+        """
+        if lang is not None:
+            self.lang = lang
+        if username is not None:
+            self.username = username
+        if hashkey is not None:
+            self.hashkey = hashkey
             
-        self.ws_uri = self.uri(lang=lang,
-                               username=username,
-                               hashkey=hashkey)
+        self.ws_uri = self.uri(lang=self.lang,
+                               username=self.username,
+                               hashkey=self.hashkey)
         
         """
         Run the STT client with optional timeout in seconds.
