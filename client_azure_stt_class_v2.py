@@ -14,7 +14,7 @@ import numpy as np
 import sounddevice as sd
 import websockets
 
-VERSION = "v0.2.0"
+VERSION = "v0.1.8"
 
 class AzureSTTClientV2:
     def __init__(

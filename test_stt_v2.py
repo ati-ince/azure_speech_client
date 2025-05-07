@@ -3,16 +3,15 @@ import signal
 import sys
 from client_azure_stt_class_v2 import AzureSTTClientV2
 
-def signal_handler(signum, frame):
-    print("\nReceived signal to stop")
-    sys.exit(0)
+client = AzureSTTClientV2()
 
-    
 async def call(timeout: float = 10, lang: str = 'tr-TR'):
-    client = AzureSTTClientV2()
     collected_text = await client.run(timeout=timeout, lang=lang)
     return collected_text
     
+def signal_handler(signum, frame):
+    print("\nReceived signal to stop")
+    sys.exit(0)
     
 if __name__ == "__main__":
     # Set up signal handlers for Windows
