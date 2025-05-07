@@ -109,18 +109,22 @@ class AzureSTTClient:
             await self._ws.close()
             self._ws = None
 
-    def run(self):
-        """Run the STT client in the main thread"""
+    async def _run_async(self):
+        """Internal async run method"""
         try:
-            asyncio.run(self.start())
+            await self.start()
         except KeyboardInterrupt:
             print("\nStopping gracefully...")
-            asyncio.run(self.stop())
+            await self.stop()
         except Exception as e:
             print(f"\nError occurred: {e}")
-            asyncio.run(self.stop())
+            await self.stop()
         finally:
             print("Stopped")
+
+    def run(self):
+        """Run the STT client in the main thread"""
+        asyncio.run(self._run_async())
 
 # Example usage
 # if __name__ == "__main__":
