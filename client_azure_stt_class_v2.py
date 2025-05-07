@@ -36,19 +36,24 @@ class AzureSTTClientV2:
         self.chunk_frames = chunk_frames
         
         # Encode credentials in query string
-        params = urllib.parse.urlencode({
-            "username": self.username,
-            "hashkey": self.hashkey,
-            "lang": self.lang
-        })
-        self.ws_uri = f"{self.base_ws_uri}?{params}"
+        # self.ws_uri = self.uri(lang=self.lang,
+        #                        username=self.username,
+        #                        hashkey=self.hashkey)
         
         self._ws = None
         self._audio_task = None
         self._text_task = None
         self._running = False
         self.collected_text: Dict[str, str] = {}  # Store text by language code
-
+    
+    def uri(self, lang: str = None, username: str = None, hashkey: str = None):
+        params = urllib.parse.urlencode({
+            "username": username,
+            "hashkey": hashkey,
+            "lang": lang
+        })
+        return f"{self.base_ws_uri}?{params}"
+    
     async def _audio_sender(self):
         loop = asyncio.get_running_loop()
 
@@ -75,7 +80,22 @@ class AzureSTTClientV2:
                 self.collected_text[self.lang] = ""
             self.collected_text[self.lang] += msg + " "
 
-    async def run(self, timeout: Optional[float] = None):
+    async def run(self,
+                  timeout: Optional[float] = None,
+                  lang: str = None,
+                  username: str = None,
+                  hashkey: str = None):
+        if lang is None:
+            lang = self.lang
+        if username is None:
+            username = self.username
+        if hashkey is None:
+            hashkey = self.hashkey
+            
+        self.ws_uri = self.uri(lang=lang,
+                               username=username,
+                               hashkey=hashkey)
+        
         """
         Run the STT client with optional timeout in seconds.
         If timeout is None, runs indefinitely until interrupted.
