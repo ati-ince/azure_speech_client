@@ -8,6 +8,7 @@ import numpy as np
 import sounddevice as sd
 import websockets
 from typing import Optional, Callable
+from datetime import datetime
 
 class STTClient:
     def __init__(
@@ -39,6 +40,11 @@ class STTClient:
         })
         self.ws_uri = f"{self.base_ws_uri}?{params}"
 
+    def _format_server_response(self, text: str) -> str:
+        """Format server response with timestamp and styling"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        return f"[{timestamp}] Server: {text}"
+
     async def _audio_sender(self, on_text: Callable[[str], None]):
         loop = asyncio.get_running_loop()
 
@@ -62,7 +68,8 @@ class STTClient:
     async def _text_receiver(self, on_text: Callable[[str], None]):
         try:
             async for msg in self.ws:
-                on_text(msg)
+                formatted_msg = self._format_server_response(msg)
+                on_text(formatted_msg)
         except websockets.exceptions.ConnectionClosed:
             print("WebSocket connection closed")
 
