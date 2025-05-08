@@ -72,7 +72,7 @@ if __name__ == "__main__":
         if 'en-GB' in translations:
             print("\nEnglish (Original):")
             print(translations['en-GB']['transcribed'])
-            print("\nTurkish (Translation):")
+            print("\nEnglish (Translation):")
             print(translations['en-GB']['translated'])
         
     except KeyboardInterrupt:
